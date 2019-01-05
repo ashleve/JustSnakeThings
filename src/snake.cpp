@@ -8,10 +8,9 @@
 
 CSnake::CSnake(CRect r, char _c):CFramedWindow(r, _c)
 {
-  CPoint starting_point = CPoint(
-    geom.size.x/2,
-    geom.size.y/2
-  );
+  CPoint starting_point = CPoint(4, 1);
+
+  fruit = CPoint(geom.size.x/2, geom.size.y/2);
 
   body.push_back(starting_point);
   starting_point+=1;
@@ -23,6 +22,7 @@ void CSnake::paint()
 {
   CFramedWindow::paint();
   paintSnake();
+  paintFruit();
   if(help) paintHelp();
 }
 
@@ -33,6 +33,12 @@ void CSnake::paintSnake()
     gotoyx((*it).y + geom.topleft.y, (*it).x + geom.topleft.x);
     printl("%c", '*');
   }
+}
+
+void CSnake::paintFruit()
+{
+  gotoyx(fruit.y + geom.topleft.y, fruit.x + geom.topleft.x);
+  printl("%c", 'O');
 }
 
 void CSnake::paintHelp()
@@ -51,7 +57,9 @@ void CSnake::paintHelp()
 
 void CSnake::moveSnakeByOne()
 {
-  //if(paused)return;
+  if(paused)return;
+
+  checkForFood();
 
   for(auto it = body.end(); it != body.begin(); it--)
   {
@@ -61,9 +69,45 @@ void CSnake::moveSnakeByOne()
     (*it).y = (*it_tmp).y;
   }
   body.front() += head_direction;
-
 }
 
+void CSnake::grow()
+{
+  body.push_back(body.back());
+}
+
+bool CSnake::checkForFood()
+{
+  CPoint head = body.front();
+  if(head.x + head_direction.x == fruit.x && head.y + head_direction.y == fruit.y)
+  {
+    grow();
+    generateFood();
+    //accelerate();
+    return true;
+  }
+  return false;
+}
+
+
+bool CSnake::find(CPoint point)
+{
+  for(auto it = body.begin(); it != body.end(); ++it)
+    if(point.x == (*it).x && point.y == (*it).y) return true;
+  return false;
+}
+
+void CSnake::generateFood()
+{
+  srand(time(NULL));
+  int x = rand()%(geom.size.x-2)+1;
+  int y = rand()%(geom.size.y-2)+1;
+  fruit = CPoint(x,y);
+
+  while(find(fruit))  // in case fruit spawns in snake body
+    generateFood();
+
+}
 
 void CSnake::runS()
 {
@@ -101,7 +145,7 @@ void CSnake::runS()
         break;
     }
 
-    //usleep(time_delay);
+    usleep(time_delay);
     //sleep(1);
     if(!paused) moveSnakeByOne();
     paint();
