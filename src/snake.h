@@ -15,6 +15,7 @@ class CSnake:public CFramedWindow
 
   list<CPoint> body;  //list of snake segments positions relative to CSnake window
   CPoint head_direction = UP;
+  CPoint fruit;
   bool paused = true;
   bool help = true;
   bool restart = true;
@@ -24,10 +25,12 @@ public:
   CSnake(CRect r, char _c = ' ');
   void paint();
   void paintSnake();
+  void paintHelp();
   void moveSnakeByOne();
 
   void runS();
   bool handleEvent(int key);
+  void grow();
 
 
 

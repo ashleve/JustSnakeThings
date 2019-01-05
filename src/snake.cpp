@@ -23,6 +23,7 @@ void CSnake::paint()
 {
   CFramedWindow::paint();
   paintSnake();
+  if(help) paintHelp();
 }
 
 void CSnake::paintSnake()
@@ -34,33 +35,35 @@ void CSnake::paintSnake()
   }
 }
 
+void CSnake::paintHelp()
+{
+  gotoyx(geom.topleft.y + 4, geom.topleft.x + 3);
+  printl("%s", "h - toggle help information");
+  gotoyx(geom.topleft.y + 5, geom.topleft.x + 3);
+  printl("%s", "p - toggle pause/play mode");
+  gotoyx(geom.topleft.y + 6, geom.topleft.x + 3);
+  printl("%s", "r - restart game");
+  gotoyx(geom.topleft.y + 7, geom.topleft.x + 3);
+  printl("%s", "arrows - move snake (in play mode) or");
+  gotoyx(geom.topleft.y + 8, geom.topleft.x + 3);
+  printl("%s", "         move window (in pause mode)");
+}
+
 void CSnake::moveSnakeByOne()
 {
   //if(paused)return;
 
-  CPoint direction;
-  for(auto it = body.begin(); it != body.end(); ++it)
+  for(auto it = body.end(); it != body.begin(); it--)
   {
     auto it_tmp = it;
-    if(++it_tmp != body.end())
-    {
-      if((*(it_tmp)).x > (*it).x)
-        direction = RIGHT;
-      else if((*(it_tmp)).x < (*it).x)
-        direction = LEFT;
-      else if((*(it_tmp)).y < (*it).y)
-        direction = UP;
-      else if((*(it_tmp)).y > (*it).y)
-        direction = DOWN;
-      else
-        exit(1); // should never come to this
-    }
-    else direction = head_direction;
-
-
-    *it += direction;
+    it_tmp--;
+    (*it).x = (*it_tmp).x;
+    (*it).y = (*it_tmp).y;
   }
+  body.front() += head_direction;
+
 }
+
 
 void CSnake::runS()
 {
@@ -98,7 +101,7 @@ void CSnake::runS()
         break;
     }
 
-    usleep(time_delay);
+    //usleep(time_delay);
     //sleep(1);
     if(!paused) moveSnakeByOne();
     paint();
