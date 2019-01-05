@@ -8,15 +8,13 @@
 
 CSnake::CSnake(CRect r, char _c):CFramedWindow(r, _c)
 {
-  CPoint starting_point = CPoint(4, 1);
-
   fruit = CPoint(geom.size.x/2, geom.size.y/2);
 
   body.push_back(starting_point);
-  starting_point+=1;
-  body.push_back(starting_point);
-  body.push_back(starting_point+=1);
+  body.push_back(starting_point+=-1);
+  body.push_back(starting_point+=-1);
 }
+
 
 void CSnake::paint()
 {
@@ -26,20 +24,31 @@ void CSnake::paint()
   if(help) paintHelp();
 }
 
+
 void CSnake::paintSnake()
 {
-  for(auto it = body.cbegin(); it != body.cend(); it++)
+  if(body.size() == 0) return;
+
+  auto it = body.begin();
+  gotoyx((*it).y + geom.topleft.y, (*it).x + geom.topleft.x);
+  printl("%c", '*');
+
+  it++;
+  while(it != body.end())
   {
     gotoyx((*it).y + geom.topleft.y, (*it).x + geom.topleft.x);
-    printl("%c", '*');
+    printl("%c", '+');
+    it++;
   }
 }
+
 
 void CSnake::paintFruit()
 {
   gotoyx(fruit.y + geom.topleft.y, fruit.x + geom.topleft.x);
   printl("%c", 'O');
 }
+
 
 void CSnake::paintHelp()
 {
@@ -55,10 +64,10 @@ void CSnake::paintHelp()
   printl("%s", "         move window (in pause mode)");
 }
 
+
 void CSnake::moveSnakeByOne()
 {
   if(paused)return;
-
   checkForFood();
 
   for(auto it = body.end(); it != body.begin(); it--)
@@ -69,12 +78,24 @@ void CSnake::moveSnakeByOne()
     (*it).y = (*it_tmp).y;
   }
   body.front() += head_direction;
+
+  // check for crossing borders
+  if(body.front().x > geom.size.x - 2)
+    body.front().x = 1;
+  else if(body.front().x < 1)
+    body.front().x = geom.size.x - 2;
+  else if(body.front().y > geom.size.y - 2)
+    body.front().y = 1;
+  else if(body.front().y < 1)
+    body.front().y = geom.size.y - 2;
 }
+
 
 void CSnake::grow()
 {
   body.push_back(body.back());
 }
+
 
 bool CSnake::checkForFood()
 {
@@ -146,7 +167,6 @@ void CSnake::runS()
     }
 
     usleep(time_delay);
-    //sleep(1);
     if(!paused) moveSnakeByOne();
     paint();
   }
