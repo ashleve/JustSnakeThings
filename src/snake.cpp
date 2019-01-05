@@ -8,19 +8,15 @@
 
 CSnake::CSnake(CRect r, char _c):CFramedWindow(r, _c)
 {
-  fruit = CPoint(geom.size.x/2, geom.size.y/2);
-
-  body.push_back(starting_point);
-  body.push_back(starting_point+=-1);
-  body.push_back(starting_point+=-1);
+  restart();
 }
 
 
 void CSnake::paint()
 {
   CFramedWindow::paint();
-  paintSnake();
   paintFruit();
+  paintSnake();
   if(help) paintHelp();
 }
 
@@ -118,6 +114,7 @@ bool CSnake::find(CPoint point)
   return false;
 }
 
+
 void CSnake::generateFood()
 {
   srand(time(NULL));
@@ -127,8 +124,26 @@ void CSnake::generateFood()
 
   while(find(fruit))  // in case fruit spawns in snake body
     generateFood();
-
 }
+
+
+void CSnake::restart()
+{
+  body.clear();
+  body.push_back(starting_point);
+  CPoint next_seg = starting_point;
+  next_seg += LEFT;
+  body.push_back(next_seg);
+  next_seg += LEFT;
+  body.push_back(next_seg);
+
+  fruit = CPoint(geom.size.x/2, geom.size.y/2);
+
+  head_direction = RIGHT;
+
+  paint();
+}
+
 
 void CSnake::runS()
 {
@@ -139,14 +154,14 @@ void CSnake::runS()
     {
       case 'h':
         help = true;
+        paint();
         return;
-        break;
       case 'p':
         if(paused) paused = false;
         else paused = true;
         break;
       case 'r':
-        restart = true;
+        restart();
         break;
       case 'w':
         head_direction = UP;
@@ -166,7 +181,7 @@ void CSnake::runS()
         break;
     }
 
-    usleep(time_delay);
+    usleep(update_delay);
     if(!paused) moveSnakeByOne();
     paint();
   }
@@ -189,10 +204,9 @@ bool CSnake::handleEvent(int key)
       else paused = true;
       break;
     case 'r':
-      restart = true;
+      restart();
       break;
   }
 
-
-  return true;
+  return false;
 }
