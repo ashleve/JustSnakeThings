@@ -18,6 +18,7 @@ void CSnake::paint()
   paintFruit();
   paintSnake();
   if(help) paintHelp();
+  if(dead) paintScore();
 }
 
 
@@ -25,17 +26,15 @@ void CSnake::paintSnake()
 {
   if(body.size() == 0) return;
 
-  auto it = body.begin();
-  gotoyx((*it).y + geom.topleft.y, (*it).x + geom.topleft.x);
-  printl("%c", '*');
-
-  it++;
-  while(it != body.end())
+  auto it = body.end();
+  while(it != body.begin())
   {
     gotoyx((*it).y + geom.topleft.y, (*it).x + geom.topleft.x);
     printl("%c", '+');
-    it++;
+    it--;
   }
+  gotoyx((*it).y + geom.topleft.y, (*it).x + geom.topleft.x);
+  printl("%c", '*');
 }
 
 
@@ -58,6 +57,13 @@ void CSnake::paintHelp()
   printl("%s", "arrows - move snake (in play mode) or");
   gotoyx(geom.topleft.y + 8, geom.topleft.x + 3);
   printl("%s", "         move window (in pause mode)");
+}
+
+
+void CSnake::paintScore()
+{
+    gotoyx(geom.topleft.y + 2, geom.topleft.x + 5);
+    printl("%s", "GAME OVER, result: ");
 }
 
 
@@ -84,6 +90,37 @@ void CSnake::moveSnakeByOne()
     body.front().y = 1;
   else if(body.front().y < 1)
     body.front().y = geom.size.y - 2;
+
+  if(checkForCollision()) die();
+}
+
+
+void CSnake::die()
+{
+  dead = true;
+  paused = true;
+}
+
+
+bool CSnake::checkForCollision()
+{
+  CPoint head = body.front();
+  auto it = body.begin();
+  it++;
+  do
+  {
+    if(head.x == (*it).x && head.y == (*it).y) return true;
+    it++;
+  }while(it != body.end());
+
+  return false;
+}
+
+
+bool CSnake::checkFor180(CPoint direction)
+{
+  if(direction.x == -head_direction.x && direction.y == -head_direction.y) return true;
+  return false;
 }
 
 
@@ -139,7 +176,10 @@ void CSnake::restart()
 
   fruit = CPoint(geom.size.x/2, geom.size.y/2);
 
+  dead = false;
   head_direction = RIGHT;
+  help = true;
+  paused = false;
 
   paint();
 }
@@ -150,6 +190,7 @@ void CSnake::runS()
   while(true)
   {
     int key = ngetch();
+
     switch(key)
     {
       case 'h':
@@ -164,24 +205,29 @@ void CSnake::runS()
         restart();
         break;
       case 'w':
+        if(checkFor180(UP)) break;
         head_direction = UP;
         moveSnakeByOne();
         break;
       case 's':
+        if(checkFor180(DOWN)) break;
         head_direction = DOWN;
         moveSnakeByOne();
         break;
       case 'a':
+        if(checkFor180(LEFT)) break;
         head_direction = LEFT;
         moveSnakeByOne();
         break;
       case 'd':
+        if(checkFor180(RIGHT)) break;
         head_direction = RIGHT;
         moveSnakeByOne();
         break;
     }
 
     usleep(update_delay);
+    if(dead) return;
     if(!paused) moveSnakeByOne();
     paint();
   }
@@ -192,6 +238,18 @@ bool CSnake::handleEvent(int key)
 {
   if(CFramedWindow::handleEvent(key))
     return true;
+
+  if(dead && paused)
+  {
+    if(key == 'r') restart();
+    else if(key == 'h')
+    {
+      if(help) help = false;
+      else help = true;
+      paint();
+    }
+    return false;
+  }
 
   switch(key)
   {

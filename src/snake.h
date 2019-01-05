@@ -19,7 +19,8 @@ class CSnake:public CFramedWindow
   CPoint fruit;
   bool paused = false;
   bool help = true;
-  int update_delay = 120000;  // snake position wil be updated each 120000 microseconds
+  bool dead = false;
+  int update_delay = 100000;  // snake position wil be updated each 100000 microseconds
 
 public:
   CSnake(CRect r, char _c = ' ');
@@ -27,18 +28,20 @@ public:
   void paintSnake();
   void paintFruit();
   void paintHelp();
+  void paintScore();
   void moveSnakeByOne();
 
   void runS();
   bool handleEvent(int key);
 
   void restart();
+  void die();
+  bool checkForCollision();
+  bool checkFor180(CPoint direction);
   bool checkForFood();
-  void grow();
   void generateFood();
   bool find(CPoint point);  //supplemental function for generateFood()
-
-
+  void grow();
 
 };
 
