@@ -5,22 +5,32 @@
 #include "cpoint.h"
 #include <list>
 
-enum GameState { help, pause, play};
 
 class CSnake:public CFramedWindow
 {
+  CPoint UP = CPoint(0, -1);
+  CPoint DOWN = CPoint(0, 1);
+  CPoint LEFT = CPoint(-1, 0);
+  CPoint RIGHT = CPoint(1, 0);
+
   list<CPoint> body;  //list of snake segments positions relative to CSnake window
-  CPoint head_direction = CPoint(0,1);
-  GameState game_state = help;
+  CPoint head_direction = UP;
+  bool paused = true;
+  bool help = true;
+  bool restart = true;
+  int time_delay = 100000;
 
 public:
   CSnake(CRect r, char _c = ' ');
   void paint();
   void paintSnake();
-  void moveSnakeByOne(const CPoint & delta);
+  void moveSnakeByOne();
+
+  void runS();
+  bool handleEvent(int key);
+
 
 
 };
 
 #endif
-

@@ -2,8 +2,11 @@
 #include "winsys.h"
 #include "cpoint.h"
 #include "screen.h"
+#include <time.h>
+#include <unistd.h>
 
-CSnake::CSnake(CRect r, char _c /*=' '*/):CFramedWindow(r, _c)
+
+CSnake::CSnake(CRect r, char _c):CFramedWindow(r, _c)
 {
   CPoint starting_point = CPoint(
     geom.size.x/2,
@@ -22,7 +25,6 @@ void CSnake::paint()
   paintSnake();
 }
 
-
 void CSnake::paintSnake()
 {
   for(auto it = body.cbegin(); it != body.cend(); it++)
@@ -32,34 +34,98 @@ void CSnake::paintSnake()
   }
 }
 
-void CSnake::moveSnakeByOne(const CPoint & dir = CPoint(0,0))//=0
+void CSnake::moveSnakeByOne()
 {
+  //if(paused)return;
+
   CPoint direction;
-  for(auto it = body.begin(); it != body.end(); it++)
+  for(auto it = body.begin(); it != body.end(); ++it)
   {
     auto it_tmp = it;
     if(++it_tmp != body.end())
     {
-      if((*(it++)).x > (*it).x)
-        direction = CPoint(1,0);
-      else if((*(it++)).x < (*it).x)
-        direction = CPoint(-1,0);
-      else if((*(it++)).y > (*it).y)
-        direction = CPoint(0,1);
-      else if((*(it++)).y < (*it).y)
-        direction = CPoint(0,-1);
+      if((*(it_tmp)).x > (*it).x)
+        direction = RIGHT;
+      else if((*(it_tmp)).x < (*it).x)
+        direction = LEFT;
+      else if((*(it_tmp)).y < (*it).y)
+        direction = UP;
+      else if((*(it_tmp)).y > (*it).y)
+        direction = DOWN;
       else
         exit(1); // should never come to this
     }
-    else
-    {
-      if(dir.x != 0 && dir.y != 0)
-        head_direction = dir;
-      direction = head_direction;
-    }
+    else direction = head_direction;
+
 
     *it += direction;
   }
-
 }
 
+void CSnake::runS()
+{
+  while(true)
+  {
+    int key = ngetch();
+    switch(key)
+    {
+      case 'h':
+        help = true;
+        return;
+        break;
+      case 'p':
+        if(paused) paused = false;
+        else paused = true;
+        break;
+      case 'r':
+        restart = true;
+        break;
+      case 'w':
+        head_direction = UP;
+        moveSnakeByOne();
+        break;
+      case 's':
+        head_direction = DOWN;
+        moveSnakeByOne();
+        break;
+      case 'a':
+        head_direction = LEFT;
+        moveSnakeByOne();
+        break;
+      case 'd':
+        head_direction = RIGHT;
+        moveSnakeByOne();
+        break;
+    }
+
+    usleep(time_delay);
+    //sleep(1);
+    if(!paused) moveSnakeByOne();
+    paint();
+  }
+}
+
+
+bool CSnake::handleEvent(int key)
+{
+  if(CFramedWindow::handleEvent(key))
+    return true;
+
+  switch(key)
+  {
+    case 'h':
+      help = false;
+      runS();
+      break;
+    case 'p':
+      if(paused) paused = false;
+      else paused = true;
+      break;
+    case 'r':
+      restart = true;
+      break;
+  }
+
+
+  return true;
+}
