@@ -18,7 +18,8 @@ void CSnake::paint()
   paintFruit();
   paintSnake();
   if(help) paintHelp();
-  if(dead) paintScore();
+  if(!dead) paintScore();
+  else paintGameOver();
 }
 
 
@@ -45,22 +46,29 @@ void CSnake::paintFruit()
 void CSnake::paintHelp()
 {
   gotoyx(geom.topleft.y + 4, geom.topleft.x + 3);
-  printl("%s", "h - toggle help information");
+  printl("h - toggle help information");
   gotoyx(geom.topleft.y + 5, geom.topleft.x + 3);
-  printl("%s", "p - toggle pause/play mode");
+  printl("p - toggle pause/play mode");
   gotoyx(geom.topleft.y + 6, geom.topleft.x + 3);
-  printl("%s", "r - restart game");
+  printl("r - restart game");
   gotoyx(geom.topleft.y + 7, geom.topleft.x + 3);
-  printl("%s", "arrows - move snake (in play mode) or");
+  printl("arrows - move snake (in play mode) or");
   gotoyx(geom.topleft.y + 8, geom.topleft.x + 3);
-  printl("%s", "         move window (in pause mode)");
+  printl("         move window (in pause mode)");
 }
 
 
 void CSnake::paintScore()
 {
+  gotoyx(geom.topleft.y-1, geom.topleft.x);
+  printl("|SCORE: %d |", score);
+}
+
+
+void CSnake::paintGameOver()
+{
     gotoyx(geom.topleft.y + 2, geom.topleft.x + 5);
-    printl("%s", "GAME OVER, result: ");
+    printl("GAME OVER, result: %d", score);
 }
 
 
@@ -125,6 +133,7 @@ bool CSnake::checkForFood()
   if(head.x + head_direction.x == fruit.x && head.y + head_direction.y == fruit.y)
   {
     grow();
+    score++;
     generateFood();
     //accelerate();
     return true;
@@ -165,6 +174,7 @@ void CSnake::restart()
 
   fruit = CPoint(geom.size.x/2, geom.size.y/2);
 
+  score = 0;
   dead = false;
   help = true;
   paused = false;
@@ -181,11 +191,11 @@ void CSnake::runS()
     switch(key)
     {
       case 'h':
-        help = true;
+        help = !help;
         return;
       case 'p':
         paused = !paused;
-        break;
+        return;
       case 'r':
         restart();
         break;
@@ -213,7 +223,7 @@ void CSnake::runS()
 
     usleep(update_delay);
     if(dead) return;
-    if(!paused) moveSnakeByOne();
+    if(!paused || help) moveSnakeByOne();
     paint();
   }
 }
@@ -234,11 +244,14 @@ bool CSnake::handleEvent(int key)
   switch(key)
   {
     case 'h':
-      help = false;
-      runS();
+      help = !help;
+      if(!paused)
+        runS();
       break;
     case 'p':
       paused = ! paused;
+      if(!help)
+        runS();
       break;
     case 'r':
       restart();

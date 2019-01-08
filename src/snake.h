@@ -14,12 +14,13 @@ class CSnake:public CFramedWindow
   CPoint RIGHT = CPoint(1,0);
 
   list<CPoint> body;  //  list of snake segments positions relative to CSnake window
+  CPoint head_direction;
   CPoint starting_point = CPoint(4,1);
-  CPoint head_direction = RIGHT;
   CPoint fruit;
-  bool paused = false;
-  bool help = true;
-  bool dead = false;
+  bool paused;
+  bool help;
+  bool dead;
+  int score;
   int update_delay = 100000;  // snake position wil be updated each 100000 microseconds
 
 public:
@@ -29,6 +30,7 @@ public:
   void paintFruit();
   void paintHelp();
   void paintScore();
+  void paintGameOver();
   void moveSnakeByOne();
 
   void runS();
