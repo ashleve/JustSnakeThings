@@ -35,7 +35,6 @@ public:
   bool handleEvent(int key);
 
   void restart();
-  void die();
   bool checkForCollision();
   bool checkFor180(CPoint direction);
   bool checkForFood();

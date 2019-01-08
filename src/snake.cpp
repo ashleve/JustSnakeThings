@@ -26,15 +26,12 @@ void CSnake::paintSnake()
 {
   if(body.size() == 0) return;
 
-  auto it = body.end();
-  while(it != body.begin())
+  for(auto it = body.begin(); it != body.end(); it++)
   {
     gotoyx((*it).y + geom.topleft.y, (*it).x + geom.topleft.x);
-    printl("%c", '+');
-    it--;
+    if(it == body.begin()) printl("%c", '*');
+    else printl("%c", '+');
   }
-  gotoyx((*it).y + geom.topleft.y, (*it).x + geom.topleft.x);
-  printl("%c", '*');
 }
 
 
@@ -88,14 +85,8 @@ void CSnake::moveSnakeByOne()
   else if(body.front().y < 1)
     body.front().y = geom.size.y - 2;
 
-  if(checkForCollision()) die();
-}
-
-
-void CSnake::die()
-{
-  dead = true;
-  paused = true;
+  if(checkForCollision())
+    dead = true;
 }
 
 
@@ -103,11 +94,12 @@ bool CSnake::checkForCollision()
 {
   CPoint head = body.front();
   auto it = body.begin();
-  do
+  it++;
+  while(it != body.end())
   {
-    it++;
     if(head.x == (*it).x && head.y == (*it).y) return true;
-  }while(it != body.end());
+    it++;
+  }
 
   return false;
 }
@@ -151,13 +143,13 @@ bool CSnake::find(CPoint point)
 
 void CSnake::generateFood()
 {
-  srand(time(NULL));
-  int x = rand()%(geom.size.x-2)+1;
-  int y = rand()%(geom.size.y-2)+1;
-  fruit = CPoint(x,y);
-
-  while(find(fruit))  // in case fruit spawns in snake body
-    generateFood();
+  do
+  {
+    srand(time(NULL));
+    int x = rand()%(geom.size.x-2)+1;
+    int y = rand()%(geom.size.y-2)+1;
+    fruit = CPoint(x,y);
+  } while(find(fruit));     // in case fruit spawns in snake body
 }
 
 
@@ -174,11 +166,9 @@ void CSnake::restart()
   fruit = CPoint(geom.size.x/2, geom.size.y/2);
 
   dead = false;
-  head_direction = RIGHT;
   help = true;
   paused = false;
-
-  paint();
+  head_direction = RIGHT;
 }
 
 
@@ -192,11 +182,9 @@ void CSnake::runS()
     {
       case 'h':
         help = true;
-        paint();
         return;
       case 'p':
-        if(paused) paused = false;
-        else paused = true;
+        paused = !paused;
         break;
       case 'r':
         restart();
@@ -236,16 +224,11 @@ bool CSnake::handleEvent(int key)
   if(CFramedWindow::handleEvent(key))
     return true;
 
-  if(dead && paused)
+  if(dead)
   {
     if(key == 'r') restart();
-    else if(key == 'h')
-    {
-      if(help) help = false;
-      else help = true;
-      paint();
-    }
-    return false;
+    else if(key == 'h') help = !help;
+    return true;
   }
 
   switch(key)
@@ -255,13 +238,12 @@ bool CSnake::handleEvent(int key)
       runS();
       break;
     case 'p':
-      if(paused) paused = false;
-      else paused = true;
+      paused = ! paused;
       break;
     case 'r':
       restart();
       break;
   }
 
-  return false;
+  return true;
 }
