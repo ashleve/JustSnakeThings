@@ -1,6 +1,7 @@
 #ifndef __SNAKE_H__
 #define __SNAKE_H__
 
+#include "screen.h"
 #include "winsys.h"
 #include "cpoint.h"
 #include <list>
@@ -15,13 +16,15 @@ class CSnake:public CFramedWindow
 
   list<CPoint> body;  //  list of snake segments positions relative to CSnake window
   CPoint head_direction;
-  CPoint starting_point = CPoint(4,1);
+  CPoint starting_point = CPoint(4,2);
   CPoint fruit;
   bool paused;
   bool help;
   bool dead;
   int score;
-  int update_delay = 100000;  // snake position wil be updated each 100000 microseconds
+  int start_speed = 300;
+  int speed;
+  int acceleration = 10;
 
 public:
   CSnake(CRect r, char _c = ' ');
@@ -33,17 +36,17 @@ public:
   void paintGameOver();
   void moveSnakeByOne();
 
-  void runS();
   bool handleEvent(int key);
+  void runS();
 
   void restart();
   bool checkForCollision();
-  bool checkFor180(CPoint direction);
+  bool checkFor180(const CPoint& direction);
   bool checkForFood();
   void generateFood();
-  bool find(CPoint point);  //supplemental function for generateFood()
+  bool find(const CPoint& point);  //supplemental function for generateFood()
   void grow();
-
+  void accelerate();
 };
 
 #endif

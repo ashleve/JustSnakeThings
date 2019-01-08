@@ -1,7 +1,4 @@
 #include "snake.h"
-#include "winsys.h"
-#include "cpoint.h"
-#include "screen.h"
 #include <time.h>
 #include <unistd.h>
 
@@ -30,8 +27,8 @@ void CSnake::paintSnake()
   for(auto it = body.begin(); it != body.end(); it++)
   {
     gotoyx((*it).y + geom.topleft.y, (*it).x + geom.topleft.x);
-    if(it == body.begin()) printl("%c", '*');
-    else printl("%c", '+');
+    if(it == body.begin()) printc('*');
+    else printc('+');
   }
 }
 
@@ -39,7 +36,7 @@ void CSnake::paintSnake()
 void CSnake::paintFruit()
 {
   gotoyx(fruit.y + geom.topleft.y, fruit.x + geom.topleft.x);
-  printl("%c", 'O');
+  printc('O');
 }
 
 
@@ -61,7 +58,7 @@ void CSnake::paintHelp()
 void CSnake::paintScore()
 {
   gotoyx(geom.topleft.y-1, geom.topleft.x);
-  printl("|SCORE: %d |", score);
+  printl("| SCORE: %d |", score);
 }
 
 
@@ -113,7 +110,7 @@ bool CSnake::checkForCollision()
 }
 
 
-bool CSnake::checkFor180(CPoint direction)
+bool CSnake::checkFor180(const CPoint &direction)
 {
   if(direction.x == -head_direction.x && direction.y == -head_direction.y)
     return true;
@@ -134,15 +131,15 @@ bool CSnake::checkForFood()
   {
     grow();
     score++;
+    accelerate();
     generateFood();
-    //accelerate();
     return true;
   }
   return false;
 }
 
 
-bool CSnake::find(CPoint point)
+bool CSnake::find(const CPoint &point)
 {
   for(auto it = body.begin(); it != body.end(); ++it)
     if(point.x == (*it).x && point.y == (*it).y) return true;
@@ -152,13 +149,21 @@ bool CSnake::find(CPoint point)
 
 void CSnake::generateFood()
 {
+  srand(time(NULL));
   do
   {
-    srand(time(NULL));
     int x = rand()%(geom.size.x-2)+1;
     int y = rand()%(geom.size.y-2)+1;
     fruit = CPoint(x,y);
   } while(find(fruit));     // in case fruit spawns in snake body
+}
+
+
+void CSnake::accelerate()
+{
+    speed -= acceleration;
+    if(speed <= 0) speed = acceleration;
+    timeout(speed);
 }
 
 
@@ -179,6 +184,9 @@ void CSnake::restart()
   help = true;
   paused = false;
   head_direction = RIGHT;
+
+  timeout(start_speed);
+  speed = start_speed;
 }
 
 
@@ -221,9 +229,8 @@ void CSnake::runS()
         break;
     }
 
-    usleep(update_delay);
     if(dead) return;
-    if(!paused || help) moveSnakeByOne();
+    moveSnakeByOne();
     paint();
   }
 }
@@ -249,7 +256,7 @@ bool CSnake::handleEvent(int key)
         runS();
       break;
     case 'p':
-      paused = ! paused;
+      paused = !paused;
       if(!help)
         runS();
       break;
