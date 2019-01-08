@@ -72,14 +72,11 @@ void CSnake::moveSnakeByOne()
   if(paused)return;
   checkForFood();
 
-  for(auto it = body.end(); it != body.begin(); it--)
-  {
-    auto it_tmp = it;
-    it_tmp--;
-    (*it).x = (*it_tmp).x;
-    (*it).y = (*it_tmp).y;
-  }
-  body.front() += head_direction;
+  // deletes last segment and adds new at the front
+  body.pop_back();
+  CPoint head = body.front();
+  head += head_direction;
+  body.push_front(head);
 
   // check for crossing borders
   if(body.front().x > geom.size.x - 2)
@@ -106,11 +103,10 @@ bool CSnake::checkForCollision()
 {
   CPoint head = body.front();
   auto it = body.begin();
-  it++;
   do
   {
-    if(head.x == (*it).x && head.y == (*it).y) return true;
     it++;
+    if(head.x == (*it).x && head.y == (*it).y) return true;
   }while(it != body.end());
 
   return false;
@@ -119,7 +115,8 @@ bool CSnake::checkForCollision()
 
 bool CSnake::checkFor180(CPoint direction)
 {
-  if(direction.x == -head_direction.x && direction.y == -head_direction.y) return true;
+  if(direction.x == -head_direction.x && direction.y == -head_direction.y)
+    return true;
   return false;
 }
 
