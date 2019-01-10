@@ -189,81 +189,57 @@ void CSnake::restart()
   speed = start_speed;
 }
 
-
-void CSnake::runS()
-{
-  while(true)
-  {
-    int key = ngetch();
-
-    switch(key)
-    {
-      case 'h':
-        help = !help;
-        return;
-      case 'p':
-        paused = !paused;
-        return;
-      case 'r':
-        restart();
-        break;
-      case 'w':
-        if(checkFor180(UP)) break;
-        head_direction = UP;
-        moveSnakeByOne();
-        break;
-      case 's':
-        if(checkFor180(DOWN)) break;
-        head_direction = DOWN;
-        moveSnakeByOne();
-        break;
-      case 'a':
-        if(checkFor180(LEFT)) break;
-        head_direction = LEFT;
-        moveSnakeByOne();
-        break;
-      case 'd':
-        if(checkFor180(RIGHT)) break;
-        head_direction = RIGHT;
-        moveSnakeByOne();
-        break;
-    }
-
-    if(dead) return;
-    moveSnakeByOne();
-    paint();
-  }
-}
-
-
 bool CSnake::handleEvent(int key)
 {
   if(CFramedWindow::handleEvent(key))
     return true;
 
-  if(dead)
-  {
-    if(key == 'r') restart();
-    else if(key == 'h') help = !help;
-    return true;
-  }
 
-  switch(key)
+  if(help || paused || dead)
   {
-    case 'h':
-      help = !help;
-      if(!paused)
-        runS();
-      break;
-    case 'p':
-      paused = !paused;
-      if(!help)
-        runS();
-      break;
-    case 'r':
-      restart();
-      break;
+       if(key == 'r') restart();
+       else if(key == 'h') help = !help;
+       else if(key == 'p') paused = !paused;
   }
+  else
+  {
+    switch(key)
+    {
+        case 'h':
+            help = !help;
+            break;
+        case 'p':
+            paused = !paused;
+            break;
+        case 'r':
+            restart();
+            break;
+        case 'w':
+            if(checkFor180(UP)) break;
+            head_direction = UP;
+            moveSnakeByOne();
+            break;
+        case 's':
+            if(checkFor180(DOWN)) break;
+            head_direction = DOWN;
+            moveSnakeByOne();
+            break;
+        case 'a':
+            if(checkFor180(LEFT)) break;
+            head_direction = LEFT;
+            moveSnakeByOne();
+            break;
+        case 'd':
+            if(checkFor180(RIGHT)) break;
+            head_direction = RIGHT;
+            moveSnakeByOne();
+            break;
+        }
+    }
 
-  return true;
+    if(!paused && !help && !dead) moveSnakeByOne();
+    
+  paint();
+
+  return false;
 }
